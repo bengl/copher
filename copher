@@ -1,0 +1,8 @@
+#!/usr/bin/env node
+if (Number(process.versions.node.split('.')[0]) < 10) {
+  console.error('copher requires Node.js 10 or higher');
+  process.exit(1);
+}
+
+// We need this to squash the warning about Symbol.asyncIterator
+require('child_process').spawn('node', ['--no-warnings', 'index.js']);

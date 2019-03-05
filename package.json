@@ -1,0 +1,30 @@
+{
+  "name": "copher",
+  "version": "0.0.1",
+  "description": "A gopher client using chromium",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": "./copher",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/bengl/copher.git"
+  },
+  "keywords": [
+    "copher",
+    "carlo",
+    "chromium"
+  ],
+  "author": "Bryan English <bryan@bryanenglish.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bengl/copher/issues"
+  },
+  "homepage": "https://github.com/bengl/copher#readme",
+  "dependencies": {
+    "carlo": "GoogleChromeLabs/carlo",
+    "file-type": "^10.8.0",
+    "opener": "^1.5.1"
+  }
+}

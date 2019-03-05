@@ -1,0 +1,51 @@
+<html>
+  <head>
+    <title>copher   |   TITLE</title>
+  <style>
+body {
+  font-family: monospace;
+  margin: 0;
+}
+#content {
+  max-width: 60em;
+  margin: auto;
+}
+
+table {
+  border-collapse: collapse;
+}
+tr {
+  border: none;
+}
+td:first-child {
+  text-align: right;
+  min-width: 6em;
+  background: lightgray;
+}
+td {
+  padding-left: 0.2em;
+  padding-right: 0.2em;
+}
+
+  </style>
+  <script>
+    window.search = function search(url) {
+      const query = prompt('Please enter your search term(s):');
+      window.location.href = url + "%09" + query;
+    }
+    window.addEventListener("keyup", event => {
+      if (event.code === 'ArrowLeft') {
+        window.history.back();
+      }
+      if (event.code === 'ArrowRight') {
+        window.history.forward();
+      }
+    }, false);
+  </script>
+  </head>
+  <body>
+    <div>
+      REPLACE_ME
+    </div>
+  </body>
+</html>
