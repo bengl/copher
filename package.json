@@ -1,6 +1,6 @@
 {
   "name": "copher",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "A gopher client using chromium",
   "main": "index.js",
   "scripts": {
