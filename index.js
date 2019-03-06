@@ -2,21 +2,33 @@ const carlo = require('carlo');
 const fileType = require('file-type');
 const open = require('opener');
 const net = require('net');
+const tls = require('tls');
 const fs = require('fs');
 const path = require('path');
 
 const template = fs.readFileSync(path.join(__dirname, 'template.html'), 'utf8');
 const [head, foot] = template.split('REPLACE_ME');
 
-const makeHead = title => head.replace('TITLE', title);
+function makeHead(url) {
+  url = url.toString();
+  if (url.startsWith('gopher://secure@')) {
+    url = url.replace('gopher://secure@', 'gophers://') + ' &#x1F512;';
+  }
+  return head.replace('TITLE', url);
+}
 
-let startUrl = 'gopher://gopher.floodgap.com';
+let startUrl;
 try {
-  const parsed = new URL(process.argv[2]);
-  if (parsed.protocol === 'gopher:') {
-    startUrl = process.argv[2];
+  startUrl = process.argv[2];
+  if (
+    startUrl ||
+    startUrl.startsWith('gopher://') ||
+    startUrl.startsWith('gophers:')
+  ) {
+    startUrl = cleanStartUrl(process.argv[2]);
   }
 } catch (e) {}
+startUrl = startUrl || 'gopher://gopher.floodgap.com';
 
 function parseGopherUrl(url) {
   if (
@@ -42,8 +54,10 @@ function makeGopherLink(type, host, port, type, selector, extra) {
   if (type === 'i') {
     return '';
   }
-  if ('0145679gIp'.includes(type)) {
-    const url = `gopher://${host}:${port}/${type}${selector || '/'}`;
+  if ('0145679gIps'.includes(type)) {
+    const realPort = port % 100000;
+    const auth = Math.floor(port / 100000) ? 'secure@' : '';
+    const url = `gopher://${auth}${host}:${realPort}/${type}${selector || '/'}`;
     const onclick = type === '7' ? ` onclick="window.search('${url}')"` : '';
     const href = type === '7' ? '#' : url;
     const dl = '4569'.includes(type) ?
@@ -123,19 +137,20 @@ function renderGopher(data, url, isText = false) {
   return `${makeHead(url)}<table>${blankRow}${rows}</table>${foot}`;
 }
 
-function dataUrl(buf) {
-  return `data:image/${fileType(buf).mime};base64,${buf.toString('base64')}`;
+function dataUrl(buf, def) {
+  const { mime } = fileType(buf) || { mime: def };
+  return `data:${mime};base64,${buf.toString('base64')}`;
 }
 
 function renderImage(buf, url) {
   return `${makeHead(url)}
-    <img src="${dataUrl(buf)}"/>
+    <img src="${dataUrl(buf, 'image/png')}"/>
   ${foot}`;
 }
 
 function renderSound(buf, url) {
   return `${makeHead(url)}
-    <audio controls src="${dataUrl(buf)}"></audio>
+    <audio controls src="${dataUrl(buf, 'audio/wav')}"></audio>
   ${foot}`;
 }
 
@@ -146,9 +161,25 @@ function tcpConnect(port, host) {
   });
 }
 
+function tlsConnect(port, host) {
+  return new Promise((resolve, reject) => {
+    const sock = tls.connect(port || 105, host, () =>
+      resolve(sock)).on('error', reject);
+  });
+}
+
+function connect(url) {
+  const { port, hostname, protocol, username } = url;
+  if (username && username === 'secure') {
+    return tlsConnect(port, hostname);
+  } else {
+    return tcpConnect(port, hostname);
+  }
+}
+
 async function getGopher(url) {
   const [parsed, type] = parseGopherUrl(url);
-  const sock = await tcpConnect(url.port, url.host);
+  const sock = await connect(parsed);
   sock.write(decodeURIComponent(url.pathname + url.search) + '\r\n');
   const bufs = [];
   for await (const d of sock) bufs.push(d);
@@ -170,6 +201,29 @@ async function getGopher(url) {
   }
 }
 
+function cleanStartUrl(urlString) {
+  if (!urlString.includes('://')) {
+    urlString = 'gopher://';
+  }
+  if (urlString.startsWith('gophers://')) {
+    urlString = urlString.replace(/^gophers:\/\//, 'gopher://secure@');
+  }
+  let [url0, url1, hostAndPort, ...rest] = urlString.split('/');
+  let [host, port] = hostAndPort.split(':');
+  if (port) {
+    port = Number(port);
+    if (port / 100000 >= 1) {
+      port = port % 100000;
+      if (!host.startsWith('secure@')) {
+        host = 'secure@' + host;
+      }
+    }
+  }
+  hostAndPort = port ? `${host}:${port}` : host;
+  urlString = [url0, url1, hostAndPort, ...rest].join('/');
+  return urlString;
+}
+
 (async () => {
   const app = await carlo.launch({
     channel: ['canary', 'stable'],
@@ -188,12 +242,12 @@ async function getGopher(url) {
       }
       body = await getGopher(url);
     } catch (e) {
-      body = renderGopher(e.stack)
+      body = renderGopher(e.stack, url)
     }
     request.fulfill({body: Buffer.from(body)});
   });
 
-  await app.load(startUrl || 'gopher://gopher.floodgap.com');
+  await app.load(startUrl);
 })().catch(e => {
   console.error(e.stack);
   process.exitCode = 1;
