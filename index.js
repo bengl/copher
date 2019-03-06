@@ -5,7 +5,8 @@ const net = require('net');
 const fs = require('fs');
 const path = require('path');
 
-const [head, foot] = fs.readFileSync(path.join(__dirname, 'template.html'), 'utf8').split('REPLACE_ME');
+const template = fs.readFileSync(path.join(__dirname, 'template.html'), 'utf8');
+const [head, foot] = template.split('REPLACE_ME');
 
 const makeHead = title => head.replace('TITLE', title);
 
@@ -37,6 +38,7 @@ function parseGopherUrl(url) {
 }
 
 function makeGopherLink(type, host, port, type, selector, extra) {
+  const typeName = typeFrom(type);
   if (type === 'i') {
     return '';
   }
@@ -44,16 +46,19 @@ function makeGopherLink(type, host, port, type, selector, extra) {
     const url = `gopher://${host}:${port}/${type}${selector || '/'}`;
     const onclick = type === '7' ? ` onclick="window.search('${url}')"` : '';
     const href = type === '7' ? '#' : url;
-    const dl = '4569'.includes(type) ? ` download="${path.basename(selector)}"` : '';
-    return `<a href="${href}"${onclick}${dl}>[${typeFrom(type)}]</a>`;
+    const dl = '4569'.includes(type) ?
+      ` download="${path.basename(selector)}"` :
+      '';
+    return `<a class="_${typeName}" href="${href}"${onclick}${dl}></a>`;
   }
   if (type === 'h') {
-    return `<a href="${selector.replace(/^URL:/, '')}">[web]</a>`;
+    const href = selector.replace(/^URL:/, '');
+    return `<a class="_${typeName}" href="${href}"></a>`;
   }
   if ('8T'.includes(type)) {
-    return `<a href="telnet://${host}:${port}">[${typeFrom(type)}]</a>`;
+    return `<a class="_${typeName}" href="telnet://${host}:${port}"></a>`;
   }
-  return `[${typeFrom(type)}]`;
+  return typeName;
 }
 
 function typeFrom(lead) {
@@ -92,7 +97,7 @@ function renderGopher(data, url, isText = false) {
   .filter(line => line.length)
   .map(line => [line.charAt(0), ...line.substr(1).split('\t')]);
 
-  const tableContents = lines.map((line, i) => {
+  const rows = lines.map((line, i) => {
     let [type, display, selector, host, port] = line;
     if (type === '+') {
       if (i === '0') {
@@ -104,12 +109,13 @@ function renderGopher(data, url, isText = false) {
     selector = selector || '/';
     let result = [
       makeGopherLink(type, host, port, type, selector),
-      `<pre>${display}</pre>`
+      display
     ].map(x => `<td>${x}</td>`).join('');
-    return `        <tr data-src="${line}">\n          ${result}\n        </tr>`;
+    return `<tr data-src="${line}">\n${result}\n</tr>`;
   }).join('\n');
+  const blankRow = '<tr><td>&nbsp;</td></tr>';
 
-  return `${makeHead(url)}<table><tr><td>&nbsp;</td></tr>\n${tableContents}\n      </table>${foot}`;
+  return `${makeHead(url)}<table>${blankRow}${rows}</table>${foot}`;
 }
 
 function dataUrl(buf) {
@@ -117,11 +123,15 @@ function dataUrl(buf) {
 }
 
 function renderImage(buf, url) {
-  return `${makeHead(url)}<img src="${dataUrl(buf)}"/>${foot}`;
+  return `${makeHead(url)}
+    <img src="${dataUrl(buf)}"/>
+  ${foot}`;
 }
 
 function renderSound(buf, url) {
-  return `${makeHead(url)}<audio controls src="${dataUrl(buf)}"></audio>${foot}`;
+  return `${makeHead(url)}
+    <audio controls src="${dataUrl(buf)}"></audio>
+  ${foot}`;
 }
 
 function tcpConnect(port, host) {

@@ -1,14 +1,10 @@
 <html>
   <head>
-    <title>copher   |   TITLE</title>
+    <title>copher | TITLE</title>
   <style>
 body {
-  font-family: monospace;
   margin: 0;
-}
-#content {
-  max-width: 60em;
-  margin: auto;
+  font-family: monospace;
 }
 
 table {
@@ -18,14 +14,42 @@ tr {
   border: none;
 }
 td:first-child {
-  text-align: right;
-  min-width: 6em;
+  text-align: center;
+  min-width: 1em;
   background: lightgray;
+  font-weight:bold;
 }
 td {
   padding-left: 0.2em;
   padding-right: 0.2em;
+  font-size: x-large;
+  white-space: pre;
 }
+
+a {
+  text-decoration: none;
+}
+
+a._text:after { content: "\1F4C3"; }
+a._menu:after { content: "\2630"; }
+a._mac-file:after { content: "\1F80B"; }
+a._dos-file:after { content: "\1F80B"; }
+a._uu-file:after { content: "\1F80B"; }
+a._search:after { content: "\1F50D"; }
+a._telnet:after { content: "\1F5B3"; }
+a._bin:after { content: "\1F80B"; }
+a._gif:after { content: "\1F5BC"; }
+a._image:after { content: "\1F5BC"; }
+a._3270:after { content: "\1F5B3"; }
+a._html:after { content: "\1F310"; }
+a._sound:after { content: "\1F50A"; }
+a._png:after { content: "\1F5BC"; }
+/* these next ones should never occur, but just in case */
+a._mirror:after { content: "mirror"; }
+a._info:after { content: "info"; }
+a._error:after { content: "error"; }
+a._cso:after { content: "cso"; }
+a._end:after { content: "end"; }
 
   </style>
   <script>
