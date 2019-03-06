@@ -134,7 +134,7 @@ function tcpConnect(port, host) {
 async function getGopher(url) {
   const [parsed, type] = parseGopherUrl(url);
   const sock = await tcpConnect(url.port, url.host);
-  sock.write(decodeURIComponent(url.pathname) + '\r\n');
+  sock.write(decodeURIComponent(url.pathname + url.search) + '\r\n');
   const bufs = [];
   for await (const d of sock) bufs.push(d);
   const data = Buffer.concat(bufs);
