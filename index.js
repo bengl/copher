@@ -22,13 +22,16 @@ let startUrl;
 try {
   startUrl = process.argv[2];
   if (
-    startUrl ||
-    startUrl.startsWith('gopher://') ||
-    startUrl.startsWith('gophers:')
+    startUrl && (
+      startUrl.startsWith('gopher://') ||
+      startUrl.startsWith('gophers://')
+    )
   ) {
     startUrl = cleanStartUrl(process.argv[2]);
   }
-} catch (e) {}
+} catch (e) {
+  console.error(e.stack);
+}
 
 function parseGopherUrl(url) {
   if (
