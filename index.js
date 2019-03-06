@@ -5,6 +5,7 @@ const net = require('net');
 const tls = require('tls');
 const fs = require('fs');
 const path = require('path');
+const makeServer = require('./startpage.js');
 
 const template = fs.readFileSync(path.join(__dirname, 'template.html'), 'utf8');
 const [head, foot] = template.split('REPLACE_ME');
@@ -28,7 +29,6 @@ try {
     startUrl = cleanStartUrl(process.argv[2]);
   }
 } catch (e) {}
-startUrl = startUrl || 'gopher://gopher.floodgap.com';
 
 function parseGopherUrl(url) {
   if (
@@ -246,6 +246,11 @@ function cleanStartUrl(urlString) {
     }
     request.fulfill({body: Buffer.from(body)});
   });
+
+  if (!startUrl) {
+    const startPort = await makeServer();
+    startUrl = `gopher://localhost:${startPort}/`;
+  }
 
   await app.load(startUrl);
 })().catch(e => {
