@@ -54,6 +54,7 @@ function makeGopherLink(type, host, port, type, selector, extra) {
   if (type === 'i') {
     return '';
   }
+  const abbr = `<abbr title="${typeName}"></abbr>`;
   if ('0145679gIps'.includes(type)) {
     const realPort = port % 100000;
     const auth = Math.floor(port / 100000) ? 'secure@' : '';
@@ -63,14 +64,14 @@ function makeGopherLink(type, host, port, type, selector, extra) {
     const dl = '4569'.includes(type) ?
       ` download="${path.basename(selector)}"` :
       '';
-    return `<a class="_${typeName}" href="${href}"${onclick}${dl}></a>`;
+    return `<a class="_${typeName}" href="${href}"${onclick}${dl}>${abbr}</a>`;
   }
   if (type === 'h') {
     const href = selector.replace(/^URL:/, '');
-    return `<a class="_${typeName}" href="${href}"></a>`;
+    return `<a class="_${typeName}" href="${href}">${abbr}</a>`;
   }
   if ('8T'.includes(type)) {
-    return `<a class="_${typeName}" href="telnet://${host}:${port}"></a>`;
+    return `<a class="_${typeName}" href="telnet://${host}:${port}">${abbr}</a>`;
   }
   return typeName;
 }
