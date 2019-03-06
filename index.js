@@ -86,15 +86,21 @@ function typeFrom(lead) {
   }
 }
 
+const blankRow = '<tr><td>&nbsp;</td></tr>';
+
+function renderText(data, url) {
+  const row = `<tr><td></td><td>${data}</td></tr>`;
+  return `${makeHead(url)}<table>${blankRow}${row}</table>${foot}`
+}
+
 function renderGopher(data, url, isText = false) {
   const lines = data.toString('ascii').split(/\r?\n/)
   .map(line => {
-    if (line === '.') return '';
-    if (isText) return `i${line}\t\t\t`;
-    if (line.length === 0) return '';
+    if (line === '.') return null;
+    if (line.length === 0) return null;
     return line;
   })
-  .filter(line => line.length)
+  .filter(line => line !== null)
   .map(line => [line.charAt(0), ...line.substr(1).split('\t')]);
 
   const rows = lines.map((line, i) => {
@@ -113,7 +119,6 @@ function renderGopher(data, url, isText = false) {
     ].map(x => `<td>${x}</td>`).join('');
     return `<tr data-src="${line}">\n${result}\n</tr>`;
   }).join('\n');
-  const blankRow = '<tr><td>&nbsp;</td></tr>';
 
   return `${makeHead(url)}<table>${blankRow}${rows}</table>${foot}`;
 }
@@ -150,9 +155,10 @@ async function getGopher(url) {
   const data = Buffer.concat(bufs);
   switch(type) {
     case '0':
+      return renderText(data, url);
     case '1':
     case '7':
-      return renderGopher(data, url, type === '0');
+      return renderGopher(data, url);
     case 'g':
     case 'I':
     case 'p':
