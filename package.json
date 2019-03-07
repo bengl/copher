@@ -26,6 +26,7 @@
   "dependencies": {
     "carlo": "GoogleChromeLabs/carlo",
     "file-type": "^10.8.0",
-    "opener": "^1.5.1"
+    "opener": "^1.5.1",
+    "yargs": "^13.2.2"
   }
 }

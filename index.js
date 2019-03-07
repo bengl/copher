@@ -5,9 +5,16 @@ const net = require('net');
 const tls = require('tls');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const makeServer = require('./startpage.js');
+const { argv } = require('yargs');
+const { version: copherVersion } = require('./package.json');
 
-const template = fs.readFileSync(path.join(__dirname, 'template.html'), 'utf8');
+let userJs = argv.userjs ? fs.readFileSync(argv.userjs, 'utf8') : '';
+
+const templateFile = path.join(__dirname, 'template.html');
+const template = fs.readFileSync(templateFile, 'utf8')
+  .replace('USER_JS', userJs).replace('COPHER_VERSION', copherVersion);
 const [head, foot] = template.split('REPLACE_ME');
 
 function makeHead(url) {
@@ -20,14 +27,14 @@ function makeHead(url) {
 
 let startUrl;
 try {
-  startUrl = process.argv[2];
+  startUrl = argv._ ? argv._[0] : undefined;
   if (
     startUrl && (
       startUrl.startsWith('gopher://') ||
       startUrl.startsWith('gophers://')
     )
   ) {
-    startUrl = cleanStartUrl(process.argv[2]);
+    startUrl = cleanStartUrl(argv._[0]);
   }
 } catch (e) {
   console.error(e.stack);

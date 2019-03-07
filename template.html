@@ -59,48 +59,55 @@ a._end abbr:after { content: "."; }
 
   </style>
   <script>
-    function cleanUrl(urlString) {
-      if (!urlString.includes('://')) {
-        urlString = 'gopher://';
-      }
-      if (urlString.startsWith('gophers://')) {
-        urlString = urlString.replace(/^gophers:\/\//, 'gopher://secure@');
-      }
-      let [url0, url1, hostAndPort, ...rest] = urlString.split('/');
-      let [host, port] = hostAndPort.split(':');
-      if (port) {
-        port = Number(port);
-        if (port / 100000 >= 1) {
-          port = port % 100000;
-          if (!host.startsWith('secure@')) {
-            host = 'secure@' + host;
-          }
+
+{
+  function cleanUrl(urlString) {
+    if (!urlString.includes('://')) {
+      urlString = 'gopher://';
+    }
+    if (urlString.startsWith('gophers://')) {
+      urlString = urlString.replace(/^gophers:\/\//, 'gopher://secure@');
+    }
+    let [url0, url1, hostAndPort, ...rest] = urlString.split('/');
+    let [host, port] = hostAndPort.split(':');
+    if (port) {
+      port = Number(port);
+      if (port / 100000 >= 1) {
+        port = port % 100000;
+        if (!host.startsWith('secure@')) {
+          host = 'secure@' + host;
         }
       }
-      hostAndPort = port ? `${host}:${port}` : host;
-      urlString = [url0, url1, hostAndPort, ...rest].join('/');
-      return urlString;
     }
+    hostAndPort = port ? `${host}:${port}` : host;
+    urlString = [url0, url1, hostAndPort, ...rest].join('/');
+    return urlString;
+  }
 
-    window.search = function search(url) {
-      const query = prompt('Please enter your search term(s):');
-      window.location.href = url + "%09" + query;
+  window.search = function search(url) {
+    const query = prompt('Please enter your search term(s):');
+    window.location.href = url + "%09" + query;
+  }
+
+  window.addEventListener("keyup", event => {
+    if (event.code === 'ArrowLeft') {
+      window.history.back();
     }
+    if (event.code === 'ArrowRight') {
+      window.history.forward();
+    }
+    if (event.code === 'KeyG') {
+      const url = prompt('Enter a valid Gopher or S/Gopher URL:', document.title.split(' ')[2]);
+      if (url) {
+        window.location.href = cleanUrl(url);
+      }
+    }
+  }, false);
 
-    window.addEventListener("keyup", event => {
-      if (event.code === 'ArrowLeft') {
-        window.history.back();
-      }
-      if (event.code === 'ArrowRight') {
-        window.history.forward();
-      }
-      if (event.code === 'KeyG') {
-        const url = prompt('Enter a valid Gopher or S/Gopher URL:', document.title.split(' ')[2]);
-        if (url) {
-          window.location.href = cleanUrl(url);
-        }
-      }
-    }, false);
+  window.copherVersion = 'COPHER_VERSION';
+}
+
+USER_JS
   </script>
   </head>
   <body>

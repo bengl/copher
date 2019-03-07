@@ -48,6 +48,20 @@ Copher also supports [S/Gopher][], allowing for TLS-encrypted gopher sessions.
 This may be triggered using `gophers` instead of `gopher` in URLs, or by adding
 100000 to the port, either in a URL or in a Gopher menu entry.
 
+## Customization
+
+You can provide a `--userjs` option, passing in an absolute path to a JS file.
+This file will be inserted inline in a `<script>` tag. There's no extra API
+provided, but you can use this to change styles or trigger or handle events, or
+any number of UI-changing things. The current version of copher is provided as
+`window.copherVersion`, in order to deal with any version-to-version
+differences.
+
+> **WARNING:** Do **not** blindly accept scripts from other random folks on the
+> internet to include in your `--userjs` file. While Copher runs inside
+> Chromium and in its own Chrome profile, there's no telling what *other* damage
+> a script may do. Be diligent and review every line of code you add.
+
 ## Known Issues
 
 There is a bug that causes a "back" (via left arrow key) to navigate from the
