@@ -37,7 +37,7 @@ An effort is made to support all of [RFC 1436][], except for CSO (item type
 
 The following commonly used item-type extensions are supported:
 
-* **\i\** - Non-link text appearing in a Gopher menu.
+* **`i`** - Non-link text appearing in a Gopher menu.
 * **`p`** - Specifically represents PNG images. These are rendered as other
   images are.
 * **`h`** - Items of this type whose selector is of the form
@@ -62,4 +62,4 @@ The MIT License. See LICENSE.txt.
 [gopher]: https://en.wikipedia.org/wiki/Gopher_(protocol)
 [carlo]: https://github.com/GoogleChromeLabs/carlo
 [RFC 1436]: https://www.ietf.org/rfc/rfc1436.txt
-[S/Gopher]: gopher://gopher.umbrellix.net
+[S/Gopher]: https://gopher.floodgap.com/gopher/gw?a=gopher%3A%2F%2Fgopher.umbrellix.net%2F
