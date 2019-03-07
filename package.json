@@ -12,6 +12,7 @@
     "url": "git+ssh://git@github.com/bengl/copher.git"
   },
   "keywords": [
+    "gopher",
     "copher",
     "carlo",
     "chromium"
