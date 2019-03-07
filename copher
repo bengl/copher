@@ -5,4 +5,6 @@ if (Number(process.versions.node.split('.')[0]) < 10) {
 }
 
 // We need this to squash the warning about Symbol.asyncIterator
-require('child_process').spawn('node', ['--no-warnings', 'index.js', process.argv.slice(2)]);
+const path = require('path');
+const index = path.join(__dirname, 'index.js');
+require('child_process').spawn('node', ['--no-warnings', index, ...process.argv.slice(2)]);
