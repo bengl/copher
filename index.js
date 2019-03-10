@@ -195,6 +195,7 @@ async function getGopher(url) {
   const bufs = [];
   for await (const d of sock) bufs.push(d);
   const data = Buffer.concat(bufs);
+  url.pathname = `/${type}${url.pathname}`;
   switch(type) {
     case '0':
       return renderText(data, url);
