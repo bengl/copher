@@ -34,7 +34,8 @@ try {
   if (
     startUrl && (
       startUrl.startsWith('gopher://') ||
-      startUrl.startsWith('gophers://')
+      startUrl.startsWith('gophers://') ||
+      !startUrl.includes('://')
     )
   ) {
     startUrl = cleanStartUrl(argv._[0]);
@@ -243,7 +244,7 @@ async function getGopher(url) {
 
 function cleanStartUrl(urlString) {
   if (!urlString.includes('://')) {
-    urlString = 'gopher://';
+    urlString = 'gopher://' + urlString;
   }
   if (urlString.startsWith('gophers://')) {
     urlString = urlString.replace(/^gophers:\/\//, 'gopher://secure@');
