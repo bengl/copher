@@ -30,6 +30,9 @@ HTML/web links and Telnet links will open in the system default applications.
 Images, sound and text files will open as a new page in copher. All other file
 types are downloaded to disk using Chrome's downloader.
 
+By default, connections will time out after 5 seconds. You can configure the
+timeout, in milliseconds, by setting the `--timeout` option.
+
 ## Gopher Protocol Support
 
 An effort is made to support all of [RFC 1436][], except for CSO (item type

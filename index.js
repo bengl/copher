@@ -13,6 +13,7 @@ const iconv = require('iconv-lite');
 
 let userJs = argv.userjs ? fs.readFileSync(argv.userjs, 'utf8') : '';
 let selectedEncoding = argv.encoding ? argv.encoding : 'utf8';
+let timeout = argv.timeout ? Number(argv.timeout) : 5000;
 
 const templateFile = path.join(__dirname, 'template.html');
 const template = fs.readFileSync(templateFile, 'utf8')
@@ -170,14 +171,22 @@ function renderSound(buf, url) {
 function tcpConnect(port, host) {
   return new Promise((resolve, reject) => {
     const sock = net.connect(port || 70, host, () =>
-      resolve(sock)).on('error', reject);
+      resolve(sock)).once('error', reject);
+    sock.setTimeout(timeout, () => {
+      sock.end();
+      reject(new Error('Request timed out.'));
+    });
   });
 }
 
 function tlsConnect(port, host) {
   return new Promise((resolve, reject) => {
     const sock = tls.connect(port || 105, host, () =>
-      resolve(sock)).on('error', reject);
+      resolve(sock)).once('error', reject);
+    sock.setTimeout(timeout, () => {
+      sock.end();
+      reject(new Error('Request timed out.'));
+    });
   });
 }
 
@@ -271,7 +280,7 @@ function cleanStartUrl(urlString) {
       }
       response = await getGopher(url);
     } catch (e) {
-      response = { body: Buffer.from(renderGopher(e.stack, new URL(request.url()))) };
+      response = { body: Buffer.from(renderText(e.stack, new URL(request.url()))) };
     }
     request.fulfill(response);
   });
