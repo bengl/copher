@@ -48,6 +48,14 @@ Copher also supports [S/Gopher][], allowing for TLS-encrypted gopher sessions.
 This may be triggered using `gophers` instead of `gopher` in URLs, or by adding
 100000 to the port, either in a URL or in a Gopher menu entry.
 
+While [RFC 1436][] states that all text must be ASCII or Latin1, UTF-8 appears
+to be more prevalant on Gopher servers today, so Copher will interpret text as
+UTF-8 by default. This can be changed via the `--encoding` option.
+[`iconv-lite`][] is used to convert from various encodings to UTF-8 for
+rendering. For example, to parse all incoming text as Latin1, try:
+
+    $ copher --encoding latin1
+
 ## Customization
 
 You can provide a `--userjs` option, passing in an absolute path to a JS file.
@@ -77,3 +85,4 @@ The MIT License. See LICENSE.txt.
 [carlo]: https://github.com/GoogleChromeLabs/carlo
 [RFC 1436]: https://www.ietf.org/rfc/rfc1436.txt
 [S/Gopher]: https://gopher.floodgap.com/gopher/gw?a=gopher%3A%2F%2Fgopher.umbrellix.net%2F
+[`iconv-lite`]: https://npmjs.com/package/iconv-lite

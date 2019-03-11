@@ -9,8 +9,10 @@ const os = require('os');
 const makeServer = require('./startpage.js');
 const { argv } = require('yargs');
 const { version: copherVersion } = require('./package.json');
+const iconv = require('iconv-lite');
 
 let userJs = argv.userjs ? fs.readFileSync(argv.userjs, 'utf8') : '';
+let selectedEncoding = argv.encoding ? argv.encoding : 'utf8';
 
 const templateFile = path.join(__dirname, 'template.html');
 const template = fs.readFileSync(templateFile, 'utf8')
@@ -119,7 +121,7 @@ function renderText(data, url) {
 }
 
 function renderGopher(data, url, isText = false) {
-  const lines = data.toString('ascii').split(/\r?\n/)
+  const lines = iconv.decode(data, selectedEncoding).split(/\r?\n/)
   .map(line => {
     if (line === '.') return null;
     if (line.length === 0) return null;
@@ -196,21 +198,36 @@ async function getGopher(url) {
   for await (const d of sock) bufs.push(d);
   const data = Buffer.concat(bufs);
   url.pathname = `/${type}${url.pathname}`;
+  let body = '';
+  let contentType;
   switch(type) {
     case '0':
-      return renderText(data, url);
+      body = renderText(data, url);
+      contentType = 'text/html; charset=utf8';
+      break;
     case '1':
     case '7':
-      return renderGopher(data, url);
+      body = renderGopher(data, url);
+      contentType = 'text/html; charset=utf8';
+      break;
     case 'g':
     case 'I':
     case 'p':
-      return renderImage(data, url);
+      body = renderImage(data, url);
+      break;
     case 's':
-      return renderSound(data, url);
+      body = renderSound(data, url);
+      break;
     default:
-      return 'Error: unknown format';
+      body = 'Error: unknown format';
   }
+  const result = { body: Buffer.from(body) };
+  if (contentType) {
+    result.headers = {
+      'content-type': contentType
+    };
+  }
+  return result;
 }
 
 function cleanStartUrl(urlString) {
@@ -245,18 +262,18 @@ function cleanStartUrl(urlString) {
   app.on('exit', () => process.exit());
 
   app.serveHandler(async request => {
-    let body;
+    let response;
     try {
       const url = new URL(request.url());
       if (url.protocol !== 'gopher:') {
         open(request.url());
         return;
       }
-      body = await getGopher(url);
+      response = await getGopher(url);
     } catch (e) {
-      body = renderGopher(e.stack, url)
+      response = { body: Buffer.from(renderGopher(e.stack, new URL(request.url()))) };
     }
-    request.fulfill({body: Buffer.from(body)});
+    request.fulfill(response);
   });
 
   if (!startUrl) {
