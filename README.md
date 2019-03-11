@@ -61,6 +61,22 @@ rendering. For example, to parse all incoming text as Latin1, try:
 
     $ copher --encoding latin1
 
+## Gopher-over-HTTPS Support
+
+[Gopher-over-HTTPS][] is supported by passing a [URL template][] to the `--goh`
+option. The template must contain a variable named `url` and the protocol must
+be `https:`. Technically HTTP would also work fine, but it is called
+Gopher-over-HTTPS, after all!
+
+Example:
+
+    $ copher --goh https://goh.commons.host:7070/{?url} gopher://gopher.club
+
+When this is enabled, all traffic will be tunneled over HTTPS through the server
+at the URL provided, assuming that the HTTPS server is GoH compliant.
+
+Note that when this is enabled, S/Gopher will not work correctly.
+
 ## Customization
 
 You can provide a `--userjs` option, passing in an absolute path to a JS file.
@@ -88,6 +104,8 @@ The MIT License. See LICENSE.txt.
 
 [gopher]: https://en.wikipedia.org/wiki/Gopher_(protocol)
 [carlo]: https://github.com/GoogleChromeLabs/carlo
-[RFC 1436]: https://www.ietf.org/rfc/rfc1436.txt
+[RFC 1436]: https://tools.ietf.org/html/rfc1436
 [S/Gopher]: https://gopher.floodgap.com/gopher/gw?a=gopher%3A%2F%2Fgopher.umbrellix.net%2F
 [`iconv-lite`]: https://npmjs.com/package/iconv-lite
+[Gopher-over-HTTPS]: https://gitlab.com/commonshost/goh#gopher-over-https-goh
+[URL Template]: https://tools.ietf.org/html/rfc6570

@@ -1,11 +1,16 @@
 const carlo = require('carlo');
 const fileType = require('file-type');
 const open = require('opener');
+const urlTemplate = require('url-template');
 const net = require('net');
 const tls = require('tls');
+const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const util = require('util');
+const { parse: urlParse } = require('url');
 const makeServer = require('./startpage.js');
 const { argv } = require('yargs');
 const { version: copherVersion } = require('./package.json');
@@ -14,6 +19,16 @@ const iconv = require('iconv-lite');
 let userJs = argv.userjs ? fs.readFileSync(argv.userjs, 'utf8') : '';
 let selectedEncoding = argv.encoding ? argv.encoding : 'utf8';
 let timeout = argv.timeout ? Number(argv.timeout) : 5000;
+let goh;
+if (argv.goh) {
+  const template = urlTemplate.parse(argv.goh);
+  const h = argv.goh.startsWith('https') ? https : http;
+  goh = url => new Promise((resolve, reject) => {
+    const options = urlParse(template.expand({ url }));
+    options.headers = { accept: "application/gopher" };
+    h.get(options, resolve).on('error', reject)
+  });
+}
 
 const templateFile = path.join(__dirname, 'template.html');
 const template = fs.readFileSync(templateFile, 'utf8')
@@ -212,13 +227,28 @@ function connect(url) {
   }
 }
 
-async function getGopher(url) {
-  const [parsed, type] = parseGopherUrl(url);
-  const sock = await connect(parsed);
-  sock.write(decodeURIComponent(url.pathname + url.search) + '\r\n');
+async function getViaCoh(url) {
+  const res = await goh(url);
   const bufs = [];
-  for await (const d of sock) bufs.push(d);
-  const data = Buffer.concat(bufs);
+  for await (const d of res) {
+    bufs.push(d);
+  }
+  return Buffer.concat(bufs);
+}
+
+async function getGopher(url) {
+  const origUrlStr = url.toString();
+  const [parsed, type] = parseGopherUrl(url);
+  let data;
+  if (goh) {
+    data = await getViaCoh(origUrlStr);
+  } else {
+    const sock = await connect(parsed);
+    sock.write(decodeURIComponent(url.pathname + url.search) + '\r\n');
+    const bufs = [];
+    for await (const d of sock) bufs.push(d);
+    data = Buffer.concat(bufs);
+  }
   url.pathname = `/${type}${url.pathname}`;
   let body = '';
   let contentType;
