@@ -68,13 +68,13 @@ function makeGopherLink(type, host, port, type, selector, extra) {
     return '';
   }
   const abbr = `<abbr title="${typeName}"></abbr>`;
-  if ('0145679gIps'.includes(type)) {
+  if ('0145679gIpsdP'.includes(type)) {
     const realPort = port % 100000;
     const auth = Math.floor(port / 100000) ? 'secure@' : '';
     const url = `gopher://${auth}${host}:${realPort}/${type}${selector || '/'}`;
     const onclick = type === '7' ? ` onclick="window.search('${url}')"` : '';
     const href = type === '7' ? '#' : url;
-    const dl = '4569'.includes(type) ?
+    const dl = '4569dP'.includes(type) ?
       ` download="${path.basename(selector)}"` :
       '';
     return `<a class="_${typeName}" href="${href}"${onclick}${dl}>${abbr}</a>`;
@@ -109,6 +109,8 @@ function typeFrom(lead) {
     case 'i': return 'info';
     case 's': return 'sound';
     case 'p': return 'png';
+    case 'P': return 'pdf';
+    case 'd': return 'download';
     case '.': return 'end';
     default: return 'unknown';
   }

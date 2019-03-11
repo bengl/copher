@@ -46,6 +46,8 @@ The following commonly used item-type extensions are supported:
 * **`h`** - Items of this type whose selector is of the form
   `URL:http://example.com/foo.html` will open in the default browser.
 * **`s`** - Sound files are opened in Copher with audio player controls.
+* **`d`** - Downloadable files.
+* **`P`** - PDF files. These are downloaded like other downloadable files.
 
 Copher also supports [S/Gopher][], allowing for TLS-encrypted gopher sessions.
 This may be triggered using `gophers` instead of `gopher` in URLs, or by adding
