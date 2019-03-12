@@ -155,7 +155,12 @@ function renderGopher(data, url, isText = false) {
 }
 
 function dataUrl(buf, def) {
-  const { mime } = fileType(buf) || { mime: def };
+  let { mime } = fileType(buf) || { mime: def };
+  if (mime === 'audio/vnd.wave' || mime === 'audio/x-wav') {
+    // Chromium seems to have issues with certain audio MIME types, so just
+    // normalize this to 'audio/wav'.
+    mime = 'audio/wav';
+  }
   return `data:${mime};base64,${buf.toString('base64')}`;
 }
 
