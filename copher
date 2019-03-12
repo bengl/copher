@@ -5,6 +5,10 @@ if (Number(process.versions.node.split('.')[0]) < 10) {
 }
 
 // We need this to squash the warning about Symbol.asyncIterator
-const path = require('path');
-const index = path.join(__dirname, 'index.js');
-require('child_process').spawn('node', ['--no-warnings', index, ...process.argv.slice(2)]);
+const { join } = require('path');
+const { spawn } = require('child_process');
+spawn(
+  'node',
+  ['--no-warnings', join(__dirname, 'index.js'), ...process.argv.slice(2)],
+  { stdio: 'inherit' }
+);
