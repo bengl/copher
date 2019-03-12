@@ -91,6 +91,10 @@ a._end abbr:after { content: "."; }
     window.location.href = url + "%09" + query;
   }
 
+  window.addEventListener("beforeunload", () => {
+    document.title = '[Loading ...]';
+  });
+
   window.addEventListener("keyup", event => {
     if (event.code === 'ArrowLeft') {
       window.history.back();
