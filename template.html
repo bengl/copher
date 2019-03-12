@@ -88,7 +88,9 @@ a._end abbr:after { content: "."; }
 
   window.search = function search(url) {
     const query = prompt('Please enter your search term(s):');
-    window.location.href = url + "%09" + query;
+    if (query) {
+      window.location.href = url + "%09" + query;
+    }
   }
 
   window.addEventListener("beforeunload", () => {
