@@ -120,7 +120,9 @@ function typeFrom(lead) {
 const blankRow = '<tr><td>&nbsp;</td></tr>';
 
 function renderText(data, url) {
-  const row = `<tr><td></td><td>${data}</td></tr>`;
+  const row = `<tr><td></td><td>${
+    (data ? data.toString() : '').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  }</td></tr>`;
   return `${makeHead(url)}<table>${blankRow}${row}</table>${foot}`
 }
 
@@ -136,6 +138,9 @@ function renderGopher(data, url, isText = false) {
 
   const rows = lines.map((line, i) => {
     let [type, display, selector, host, port] = line;
+    if (display) {
+      display = display.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
     if (type === '+') {
       if (i === '0') {
         throw new Error('badly formed gopher menu');
