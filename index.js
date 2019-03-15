@@ -11,7 +11,6 @@ const path = require('path');
 const os = require('os');
 const util = require('util');
 const { parse: urlParse } = require('url');
-const makeServer = require('./startpage.js');
 const { argv } = require('yargs');
 const { version: copherVersion } = require('./package.json');
 const iconv = require('iconv-lite');
@@ -329,8 +328,7 @@ function cleanStartUrl(urlString) {
   });
 
   if (!startUrl) {
-    const startPort = await makeServer();
-    startUrl = `gopher://localhost:${startPort}/`;
+    startUrl = 'gopher://spaghetti.host/1/copherstart'
   }
 
   await app.load(startUrl);
