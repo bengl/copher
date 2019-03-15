@@ -10,6 +10,7 @@ body {
 table {
   border-collapse: collapse;
   empty-cells: show;
+  table-layout: fixed;
 }
 tr {
   border: none;
@@ -20,12 +21,16 @@ td:first-child {
   background: lightgray;
   font-weight:bold;
 }
+td:nth-child(2) {
+  min-width: 70ch;
+}
 td {
   padding-left: 0.2em;
   padding-right: 0.2em;
   font-size: x-large;
-  white-space: pre;
+  white-space: pre-wrap;
   height: 1em;
+  vertical-align: top;
 }
 
 abbr {
