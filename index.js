@@ -67,11 +67,12 @@ function parseGopherUrl(url) {
     url = new URL(`gopher://${url}`);
   }
   let type = '1';
-  if (url.pathname && url.pathname.match(/^\/.\/.*/)) {
-    type = url.pathname.charAt(1);
-    url.pathname = url.pathname.substr(2);
-    if (!url.pathname) {
-      url.pathname = '/';
+  url.selector = url.pathname;
+  if (url.selector && url.selector.length >= 2) {
+    type = url.selector.charAt(1);
+    url.selector = url.selector.substr(2);
+    if (!url.selector) {
+      url.selector = '/';
     }
   }
   return [url, type];
@@ -243,12 +244,12 @@ async function getGopher(url) {
     data = await getViaCoh(origUrlStr);
   } else {
     const sock = await connect(parsed);
-    sock.write(decodeURIComponent(url.pathname + url.search) + '\r\n');
+    sock.write(decodeURIComponent(url.selector + url.search) + '\r\n');
     const bufs = [];
     for await (const d of sock) bufs.push(d);
     data = Buffer.concat(bufs);
   }
-  url.pathname = `/${type}${url.pathname}`;
+  url.pathname = `/${type}${url.selector}`;
   let body = '';
   let contentType;
   switch(type) {
