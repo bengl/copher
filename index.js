@@ -45,13 +45,7 @@ function makeHead(url) {
 let startUrl;
 try {
   startUrl = argv._ ? argv._[0] : undefined;
-  if (
-    startUrl && (
-      startUrl.startsWith('gopher://') ||
-      startUrl.startsWith('gophers://') ||
-      !startUrl.includes('://')
-    )
-  ) {
+  if (startUrl) {
     startUrl = cleanStartUrl(argv._[0]);
   }
 } catch (e) {
@@ -288,6 +282,9 @@ function cleanStartUrl(urlString) {
   }
   if (urlString.startsWith('gophers://')) {
     urlString = urlString.replace(/^gophers:\/\//, 'gopher://secure@');
+  } else {
+    // Twitter (and other things) automatically convert domain names to HTTP.
+    urlString = urlString.replace(/^https?:/, 'gopher:');
   }
   let [url0, url1, hostAndPort, ...rest] = urlString.split('/');
   let [host, port] = hostAndPort.split(':');
