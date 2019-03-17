@@ -77,6 +77,9 @@ function makeGopherLink(type, host, port, type, selector, extra) {
   if (type === 'i') {
     return '';
   }
+  if (type === '3') {
+    return '<span class="error"><span>';
+  }
   const abbr = `<abbr title="${typeName}"></abbr>`;
   if ('0145679gIpsdP'.includes(type)) {
     const realPort = port % 100000;
