@@ -81,17 +81,6 @@ function makeGopherLink(type, host, port, type, selector, extra) {
     return '<span class="error"><span>';
   }
   const abbr = `<abbr title="${typeName}"></abbr>`;
-  if ('0145679gIpsdP'.includes(type)) {
-    const realPort = port % 100000;
-    const auth = Math.floor(port / 100000) ? 'secure@' : '';
-    const url = `gopher://${auth}${host}:${realPort}/${type}${selector || '/'}`;
-    const onclick = type === '7' ? ` onclick="window.search('${url}')"` : '';
-    const href = type === '7' ? '#' : url;
-    const dl = '4569dP'.includes(type) ?
-      ` download="${path.basename(selector)}"` :
-      '';
-    return `<a class="_${typeName}" href="${href}"${onclick}${dl}>${abbr}</a>`;
-  }
   if (type === 'h') {
     const href = selector.replace(/^URL:/, '');
     return `<a class="_${typeName}" href="${href}">${abbr}</a>`;
@@ -99,7 +88,15 @@ function makeGopherLink(type, host, port, type, selector, extra) {
   if ('8T'.includes(type)) {
     return `<a class="_${typeName}" href="telnet://${host}:${port}">${abbr}</a>`;
   }
-  return typeName;
+  const realPort = port % 100000;
+  const auth = Math.floor(port / 100000) ? 'secure@' : '';
+  const url = `gopher://${auth}${host}:${realPort}/${type}${selector || '/'}`;
+  const onclick = type === '7' ? ` onclick="window.search('${url}')"` : '';
+  const href = type === '7' ? '#' : url;
+  const dl = ('4569dP'.includes(type) || typeName === 'unknown') ?
+    ` download="${path.basename(selector)}"` :
+    '';
+  return `<a class="_${typeName}" href="${href}"${onclick}${dl}>${abbr}</a>`;
 }
 
 function typeFrom(lead) {

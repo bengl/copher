@@ -49,6 +49,9 @@ The following commonly used item-type extensions are supported:
 * **`d`** - Downloadable files.
 * **`P`** - PDF files. These are downloaded like other downloadable files.
 
+If copher does not recognize an item type, it will be treated as a downloadable
+file.
+
 Copher also supports [S/Gopher][], allowing for TLS-encrypted gopher sessions.
 This may be triggered using `gophers` instead of `gopher` in URLs, or by adding
 100000 to the port, either in a URL or in a Gopher menu entry.
