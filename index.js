@@ -132,10 +132,22 @@ function typeFrom(lead) {
 const blankRow = '<tr><td>&nbsp;</td></tr>';
 
 function renderText(data, url) {
-  const row = `<tr><td></td><td>${
-    (data ? data.toString() : '').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-  }</td></tr>`;
-  return `${makeHead(url)}<table>${blankRow}${row}</table>${foot}`
+  const rows = (data ? data.toString() : '').trimEnd().split(/\r?\n/);
+  if (rows[rows.length - 1] === '.') {
+    rows[rows.length - 1] = '';
+  }
+  return `${makeHead(url)}
+  <table>
+    ${blankRow}
+    ${rows.map(row => {
+      const cleanedRow = row
+      .replace(/</g, '&lt;') // html escaping
+      .replace(/>/g, '&gt;') // html escaping
+      .replace(/^\.\./, '.'); // leading double-`.` are escaped single-`.`
+      return `<tr><td></td><td>${cleanedRow}</td></tr>`
+    }).join('\n')}
+  </table>
+  ${foot}`;
 }
 
 function renderGopher(data, url, isText = false) {
