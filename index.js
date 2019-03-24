@@ -8,8 +8,6 @@ const http = require('http');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
-const os = require('os');
-const util = require('util');
 const { parse: urlParse } = require('url');
 const { argv } = require('yargs');
 const { version: copherVersion } = require('./package.json');
@@ -24,8 +22,8 @@ if (argv.goh) {
   const h = argv.goh.startsWith('https') ? https : http;
   goh = url => new Promise((resolve, reject) => {
     const options = urlParse(template.expand({ url }));
-    options.headers = { accept: "application/gopher" };
-    h.get(options, resolve).on('error', reject)
+    options.headers = { accept: 'application/gopher' };
+    h.get(options, resolve).on('error', reject);
   });
 }
 
@@ -34,7 +32,7 @@ const template = fs.readFileSync(templateFile, 'utf8')
   .replace('USER_JS', userJs).replace('COPHER_VERSION', copherVersion);
 const [head, foot] = template.split('REPLACE_ME');
 
-function makeHead(url, secure) {
+function makeHead (url, secure) {
   url = url.toString();
   if (secure) {
     url = url + ' &#x1F512;';
@@ -52,7 +50,7 @@ try {
   console.error(e.stack);
 }
 
-function parseGopherUrl(url) {
+function parseGopherUrl (url) {
   if (
     url.protocol === null &&
     url.host === null &&
@@ -72,7 +70,7 @@ function parseGopherUrl(url) {
   return [url, type];
 }
 
-function makeGopherLink(type, host, port, type, selector, extra) {
+function makeGopherLink (type, host, port, selector) {
   const typeName = typeFrom(type);
   if (type === 'i') {
     return '';
@@ -92,13 +90,13 @@ function makeGopherLink(type, host, port, type, selector, extra) {
   const url = `gopher://${host}:${realPort}/${type}${selector || '/'}`;
   const onclick = type === '7' ? ` onclick="window.search('${url}')"` : '';
   const href = type === '7' ? '#' : url;
-  const dl = ('4569dP'.includes(type) || typeName === 'unknown') ?
-    ` download="${path.basename(selector)}"` :
-    '';
+  const dl = ('4569dP'.includes(type) || typeName === 'unknown')
+    ? ` download="${path.basename(selector)}"`
+    : '';
   return `<a class="_${typeName}" href="${href}"${onclick}${dl}>${abbr}</a>`;
 }
 
-function typeFrom(lead) {
+function typeFrom (lead) {
   switch (lead) {
     case '0': return 'text';
     case '1': return 'menu';
@@ -127,7 +125,7 @@ function typeFrom(lead) {
 
 const blankRow = '<tr><td>&nbsp;</td></tr>';
 
-function renderText(data, url, secure) {
+function renderText (data, url, secure) {
   const rows = (data ? data.toString() : '').trimEnd().split(/\r?\n/);
   if (rows[rows.length - 1] === '.') {
     rows[rows.length - 1] = '';
@@ -136,25 +134,25 @@ function renderText(data, url, secure) {
   <table>
     ${blankRow}
     ${rows.map(row => {
-      const cleanedRow = row
+    const cleanedRow = row
       .replace(/</g, '&lt;') // html escaping
       .replace(/>/g, '&gt;') // html escaping
       .replace(/^\.\./, '.'); // leading double-`.` are escaped single-`.`
-      return `<tr><td></td><td>${cleanedRow}</td></tr>`
-    }).join('\n')}
+    return `<tr><td></td><td>${cleanedRow}</td></tr>`;
+  }).join('\n')}
   </table>
   ${foot}`;
 }
 
-function renderGopher(data, url, secure) {
+function renderGopher (data, url, secure) {
   const lines = iconv.decode(data, selectedEncoding).split(/\r?\n/)
-  .map(line => {
-    if (line === '.') return null;
-    if (line.length === 0) return null;
-    return line;
-  })
-  .filter(line => line !== null)
-  .map(line => [line.charAt(0), ...line.substr(1).split('\t')]);
+    .map(line => {
+      if (line === '.') return null;
+      if (line.length === 0) return null;
+      return line;
+    })
+    .filter(line => line !== null)
+    .map(line => [line.charAt(0), ...line.substr(1).split('\t')]);
 
   const rows = lines.map((line, i) => {
     let [type, display, selector, host, port] = line;
@@ -170,7 +168,7 @@ function renderGopher(data, url, secure) {
     }
     selector = selector || '/';
     let result = [
-      makeGopherLink(type, host, port, type, selector),
+      makeGopherLink(type, host, port, selector),
       display
     ].map(x => `<td>${x}</td>`).join('');
     return `<tr data-src="${line}">\n${result}\n</tr>`;
@@ -179,7 +177,7 @@ function renderGopher(data, url, secure) {
   return `${makeHead(url, secure)}<table>${blankRow}${rows}</table>${foot}`;
 }
 
-function dataUrl(buf, def) {
+function dataUrl (buf, def) {
   let { mime } = fileType(buf) || { mime: def };
   if (mime === 'audio/vnd.wave' || mime === 'audio/x-wav') {
     // Chromium seems to have issues with certain audio MIME types, so just
@@ -189,19 +187,19 @@ function dataUrl(buf, def) {
   return `data:${mime};base64,${buf.toString('base64')}`;
 }
 
-function renderImage(buf, url, secure) {
+function renderImage (buf, url, secure) {
   return `${makeHead(url, secure)}
     <img src="${dataUrl(buf, 'image/png')}"/>
   ${foot}`;
 }
 
-function renderSound(buf, url, secure) {
+function renderSound (buf, url, secure) {
   return `${makeHead(url, secure)}
     <audio controls src="${dataUrl(buf, 'audio/wav')}"></audio>
   ${foot}`;
 }
 
-function _connect(lib, port, host) {
+function _connect (lib, port, host) {
   return new Promise((resolve, reject) => {
     const sock = lib.connect(port || 70, host, () =>
       resolve(sock)).once('error', reject);
@@ -212,20 +210,22 @@ function _connect(lib, port, host) {
   });
 }
 
-async function connect(url) {
+async function connect (url) {
   const { port, hostname } = url;
+  let sock;
   if (argv.tls) {
     try {
-      return await _connect(tls, port, hostname);
+      sock = await _connect(tls, port, hostname);
     } catch (e) {
-      return await _connect(net, port, hostname);
+      sock = await _connect(net, port, hostname);
     }
   } else {
-    return await _connect(net, port, hostname);
+    sock = await _connect(net, port, hostname);
   }
+  return sock;
 }
 
-async function getViaCoh(url) {
+async function getViaCoh (url) {
   const res = await goh(url);
   const bufs = [];
   for await (const d of res) {
@@ -234,7 +234,7 @@ async function getViaCoh(url) {
   return Buffer.concat(bufs);
 }
 
-async function getGopher(url) {
+async function getGopher (url) {
   const origUrlStr = url.toString();
   const [parsed, type] = parseGopherUrl(url);
   let data;
@@ -254,7 +254,7 @@ async function getGopher(url) {
   url.pathname = `/${type}${url.selector}`;
   let body = '';
   let contentType;
-  switch(type) {
+  switch (type) {
     case '0':
       body = renderText(data, url, secure);
       contentType = 'text/html; charset=utf8';
@@ -284,7 +284,7 @@ async function getGopher(url) {
   return result;
 }
 
-function cleanStartUrl(urlString) {
+function cleanStartUrl (urlString) {
   if (!urlString.includes('://')) {
     urlString = 'gopher://' + urlString;
   }
@@ -327,7 +327,7 @@ function cleanStartUrl(urlString) {
   });
 
   if (!startUrl) {
-    startUrl = 'gopher://spaghetti.host/1/copherstart'
+    startUrl = 'gopher://spaghetti.host/1/copherstart';
   }
 
   await app.load(startUrl);

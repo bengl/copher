@@ -4,6 +4,7 @@
   "description": "A gopher client using chromium",
   "main": "index.js",
   "scripts": {
+    "lint": "semistandard",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": "./copher",
@@ -30,5 +31,8 @@
     "opener": "^1.5.1",
     "url-template": "^2.0.8",
     "yargs": "^13.2.2"
+  },
+  "devDependencies": {
+    "semistandard": "^13.0.1"
   }
 }
