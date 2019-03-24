@@ -17,7 +17,7 @@ const iconv = require('iconv-lite');
 
 let userJs = argv.userjs ? fs.readFileSync(argv.userjs, 'utf8') : '';
 let selectedEncoding = argv.encoding ? argv.encoding : 'utf8';
-let timeout = argv.timeout ? Number(argv.timeout) : 5000;
+let timeout = argv.timeout ? Number(argv.timeout) : 1000;
 let goh;
 if (argv.goh) {
   const template = urlTemplate.parse(argv.goh);
@@ -34,10 +34,10 @@ const template = fs.readFileSync(templateFile, 'utf8')
   .replace('USER_JS', userJs).replace('COPHER_VERSION', copherVersion);
 const [head, foot] = template.split('REPLACE_ME');
 
-function makeHead(url) {
+function makeHead(url, secure) {
   url = url.toString();
-  if (url.startsWith('gopher://secure@')) {
-    url = url.replace('gopher://secure@', 'gophers://') + ' &#x1F512;';
+  if (secure) {
+    url = url + ' &#x1F512;';
   }
   return head.replace('TITLE', url);
 }
@@ -88,9 +88,8 @@ function makeGopherLink(type, host, port, type, selector, extra) {
   if ('8T'.includes(type)) {
     return `<a class="_${typeName}" href="telnet://${host}:${port}">${abbr}</a>`;
   }
-  const realPort = port % 100000;
-  const auth = Math.floor(port / 100000) ? 'secure@' : '';
-  const url = `gopher://${auth}${host}:${realPort}/${type}${selector || '/'}`;
+  const realPort = port % 100000; // S/Gopher
+  const url = `gopher://${host}:${realPort}/${type}${selector || '/'}`;
   const onclick = type === '7' ? ` onclick="window.search('${url}')"` : '';
   const href = type === '7' ? '#' : url;
   const dl = ('4569dP'.includes(type) || typeName === 'unknown') ?
@@ -128,12 +127,12 @@ function typeFrom(lead) {
 
 const blankRow = '<tr><td>&nbsp;</td></tr>';
 
-function renderText(data, url) {
+function renderText(data, url, secure) {
   const rows = (data ? data.toString() : '').trimEnd().split(/\r?\n/);
   if (rows[rows.length - 1] === '.') {
     rows[rows.length - 1] = '';
   }
-  return `${makeHead(url)}
+  return `${makeHead(url, secure)}
   <table>
     ${blankRow}
     ${rows.map(row => {
@@ -147,7 +146,7 @@ function renderText(data, url) {
   ${foot}`;
 }
 
-function renderGopher(data, url, isText = false) {
+function renderGopher(data, url, secure) {
   const lines = iconv.decode(data, selectedEncoding).split(/\r?\n/)
   .map(line => {
     if (line === '.') return null;
@@ -177,7 +176,7 @@ function renderGopher(data, url, isText = false) {
     return `<tr data-src="${line}">\n${result}\n</tr>`;
   }).join('\n');
 
-  return `${makeHead(url)}<table>${blankRow}${rows}</table>${foot}`;
+  return `${makeHead(url, secure)}<table>${blankRow}${rows}</table>${foot}`;
 }
 
 function dataUrl(buf, def) {
@@ -190,21 +189,21 @@ function dataUrl(buf, def) {
   return `data:${mime};base64,${buf.toString('base64')}`;
 }
 
-function renderImage(buf, url) {
-  return `${makeHead(url)}
+function renderImage(buf, url, secure) {
+  return `${makeHead(url, secure)}
     <img src="${dataUrl(buf, 'image/png')}"/>
   ${foot}`;
 }
 
-function renderSound(buf, url) {
-  return `${makeHead(url)}
+function renderSound(buf, url, secure) {
+  return `${makeHead(url, secure)}
     <audio controls src="${dataUrl(buf, 'audio/wav')}"></audio>
   ${foot}`;
 }
 
-function tcpConnect(port, host) {
+function _connect(lib, port, host) {
   return new Promise((resolve, reject) => {
-    const sock = net.connect(port || 70, host, () =>
+    const sock = lib.connect(port || 70, host, () =>
       resolve(sock)).once('error', reject);
     sock.setTimeout(timeout, () => {
       sock.end();
@@ -213,23 +212,16 @@ function tcpConnect(port, host) {
   });
 }
 
-function tlsConnect(port, host) {
-  return new Promise((resolve, reject) => {
-    const sock = tls.connect(port || 105, host, () =>
-      resolve(sock)).once('error', reject);
-    sock.setTimeout(timeout, () => {
-      sock.end();
-      reject(new Error('Request timed out.'));
-    });
-  });
-}
-
-function connect(url) {
-  const { port, hostname, protocol, username } = url;
-  if (username && username === 'secure') {
-    return tlsConnect(port, hostname);
+async function connect(url) {
+  const { port, hostname } = url;
+  if (argv.tls) {
+    try {
+      return await _connect(tls, port, hostname);
+    } catch (e) {
+      return await _connect(net, port, hostname);
+    }
   } else {
-    return tcpConnect(port, hostname);
+    return await _connect(net, port, hostname);
   }
 }
 
@@ -246,10 +238,14 @@ async function getGopher(url) {
   const origUrlStr = url.toString();
   const [parsed, type] = parseGopherUrl(url);
   let data;
+  let secure;
   if (goh) {
     data = await getViaCoh(origUrlStr);
   } else {
     const sock = await connect(parsed);
+    if (sock instanceof tls.TLSSocket) {
+      secure = true;
+    }
     sock.write(decodeURIComponent(url.selector + url.search) + '\r\n');
     const bufs = [];
     for await (const d of sock) bufs.push(d);
@@ -260,21 +256,21 @@ async function getGopher(url) {
   let contentType;
   switch(type) {
     case '0':
-      body = renderText(data, url);
+      body = renderText(data, url, secure);
       contentType = 'text/html; charset=utf8';
       break;
     case '1':
     case '7':
-      body = renderGopher(data, url);
+      body = renderGopher(data, url, secure);
       contentType = 'text/html; charset=utf8';
       break;
     case 'g':
     case 'I':
     case 'p':
-      body = renderImage(data, url);
+      body = renderImage(data, url, secure);
       break;
     case 's':
-      body = renderSound(data, url);
+      body = renderSound(data, url, secure);
       break;
     default:
       body = 'Error: unknown format';
@@ -292,21 +288,14 @@ function cleanStartUrl(urlString) {
   if (!urlString.includes('://')) {
     urlString = 'gopher://' + urlString;
   }
-  if (urlString.startsWith('gophers://')) {
-    urlString = urlString.replace(/^gophers:\/\//, 'gopher://secure@');
-  } else {
-    // Twitter (and other things) automatically convert domain names to HTTP.
-    urlString = urlString.replace(/^https?:/, 'gopher:');
-  }
+  // Twitter (and other things) automatically convert domain names to HTTP.
+  urlString = urlString.replace(/^https?:/, 'gopher:');
   let [url0, url1, hostAndPort, ...rest] = urlString.split('/');
   let [host, port] = hostAndPort.split(':');
   if (port) {
     port = Number(port);
-    if (port / 100000 >= 1) {
+    if (port / 100000 >= 1) { // S/Gopher
       port = port % 100000;
-      if (!host.startsWith('secure@')) {
-        host = 'secure@' + host;
-      }
     }
   }
   hostAndPort = port ? `${host}:${port}` : host;

@@ -30,7 +30,7 @@ HTML/web links and Telnet links will open in the system default applications.
 Images, sound and text files will open as a new page in copher. All other file
 types are downloaded to disk using Chrome's downloader.
 
-By default, connections will time out after 5 seconds. You can configure the
+By default, connections will time out after 1 second. You can configure the
 timeout, in milliseconds, by setting the `--timeout` option.
 
 ## Gopher Protocol Support
@@ -52,10 +52,6 @@ The following commonly used item-type extensions are supported:
 If copher does not recognize an item type, it will be treated as a downloadable
 file.
 
-Copher also supports [S/Gopher][], allowing for TLS-encrypted gopher sessions.
-This may be triggered using `gophers` instead of `gopher` in URLs, or by adding
-100000 to the port, either in a URL or in a Gopher menu entry.
-
 While [RFC 1436][] states that all text must be ASCII or Latin1, UTF-8 appears
 to be more prevalant on Gopher servers today, so Copher will interpret text as
 UTF-8 by default. This can be changed via the `--encoding` option.
@@ -63,6 +59,15 @@ UTF-8 by default. This can be changed via the `--encoding` option.
 rendering. For example, to parse all incoming text as Latin1, try:
 
     $ copher --encoding latin1
+
+## Gopher-over-TLS Support
+
+Copher supports Copher-over-TLS, in that it will first try to initiate a TLS
+handshake with the destination server, and if that fails, fall back to ordinary
+plaintext TCP. Since most gopher servers don't support TLS, this feature must be
+activated with a `--tls` option. All port numbers in copher are evaluated as
+`port % 100000`, so [S/Gopher][] links should work just fine when the `--tls`
+option is enabled.
 
 ## Gopher-over-HTTPS Support
 
