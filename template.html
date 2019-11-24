@@ -131,6 +131,9 @@ a._end abbr:after { content: "."; }
         window.location.href = cleanUrl(url);
       }
     }
+    if (event.code === 'KeyR') {
+      location.reload(true);
+    }
   }, false);
 
   window.copherVersion = 'COPHER_VERSION';
